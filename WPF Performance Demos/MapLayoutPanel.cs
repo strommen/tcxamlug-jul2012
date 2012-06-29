@@ -60,6 +60,8 @@ namespace WPF_Performance_Demos
 
 		#endregion
 
+		#region Projection
+
 		public Point Project(double lat, double lon, Point panelCenter, Size panelSize)
 		{
 			//mercator projection
@@ -88,14 +90,16 @@ namespace WPF_Performance_Demos
 
 		public Point panelCenter;
 
+		#endregion
+
 		protected override Size MeasureOverride(Size availableSize)
 		{
 			if (this.InternalChildren.Count == 0) return new Size(0, 0);
 
-			double minXLoc = double.MaxValue;
-			double maxXLoc = double.MinValue;
-			double minYLoc = double.MaxValue;
-			double maxYLoc = double.MinValue;
+			double minX = double.MaxValue;
+			double maxX = double.MinValue;
+			double minY = double.MaxValue;
+			double maxY = double.MinValue;
 
 			foreach (UIElement child in this.InternalChildren)
 			{
@@ -106,15 +110,15 @@ namespace WPF_Performance_Demos
 
 				var location = Project(lat, lon, new Point(0, 0), new Size(0, 0));
 
-				minXLoc = Math.Min(minXLoc, location.X);
-				maxXLoc = Math.Max(maxXLoc, location.X);
-				minYLoc = Math.Min(minYLoc, location.Y);
-				maxYLoc = Math.Max(maxYLoc, location.Y);
+				minX = Math.Min(minX, location.X);
+				maxX = Math.Max(maxX, location.X);
+				minY = Math.Min(minY, location.Y);
+				maxY = Math.Max(maxY, location.Y);
 			}
 
-			panelCenter = new Point((minXLoc + maxXLoc) / 2, (minYLoc + maxYLoc) / 2);
+			panelCenter = new Point((minX + maxX) / 2, (minY + maxY) / 2);
 
-			return new Size(Math.Min(availableSize.Width, maxXLoc - minXLoc), Math.Min(availableSize.Height, maxYLoc - minYLoc));
+			return new Size(Math.Min(availableSize.Width, maxX - minX), Math.Min(availableSize.Height, maxY - minY));
 		}
 
 		protected override Size ArrangeOverride(Size finalSize)
