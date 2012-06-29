@@ -2,39 +2,46 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:local="clr-namespace:WPF_Performance_Demos"
-        Title="MainWindow" Height="350" Width="768">
-		<ItemsControl ItemsSource="{Binding Cities}"
+        Title="MainWindow" >
+	<ItemsControl x:Name="itemsControl" ItemsSource="{Binding Cities}"
 					      ScrollViewer.CanContentScroll="True"
 					  VirtualizingStackPanel.VirtualizationMode="Recycling"
 					  >
-			<ItemsControl.Template>
-				<ControlTemplate>
-					<ScrollViewer
+		<ItemsControl.LayoutTransform>
+			<ScaleTransform x:Name="itemsControlLayout" />
+		</ItemsControl.LayoutTransform>
+		<ItemsControl.Template>
+			<ControlTemplate>
+				<ScrollViewer
+					VerticalScrollBarVisibility="Hidden"
+					HorizontalScrollBarVisibility="Hidden"
                     Padding="{TemplateBinding Control.Padding}"
                     Focusable="False">
-						<ItemsPresenter
+					<ItemsPresenter
                         SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
-					</ScrollViewer>
-				</ControlTemplate>
-			</ItemsControl.Template>
-			<ItemsControl.ItemsPanel>
-				<ItemsPanelTemplate>
-				<local:MapLayoutPanel />
+				</ScrollViewer>
+			</ControlTemplate>
+		</ItemsControl.Template>
+		<ItemsControl.ItemsPanel>
+			<ItemsPanelTemplate>
+				<local:MapLayoutPanel Background="Transparent" 
+									  MouseLeftButtonDown="MapLayoutPanel_MouseLeftButtonDown" 
+									  MouseWheel="MapLayoutPanel_MouseWheel" />
 			</ItemsPanelTemplate>
-			</ItemsControl.ItemsPanel>
+		</ItemsControl.ItemsPanel>
 
-			<ItemsControl.ItemContainerStyle>
-				<Style>
+		<ItemsControl.ItemContainerStyle>
+			<Style>
 				<Setter Property="local:MapLayoutPanel.Latitude" Value="{Binding Latitude}" />
 				<Setter Property="local:MapLayoutPanel.Longitude" Value="{Binding Longitude}" />
 			</Style>
-			</ItemsControl.ItemContainerStyle>
+		</ItemsControl.ItemContainerStyle>
 
-			<ItemsControl.ItemTemplate>
-				<DataTemplate>
-					<!--<local:FileControl />-->
-				<TextBlock  Text="{Binding Name}" />
+		<ItemsControl.ItemTemplate>
+			<DataTemplate>
+				<!--<local:FileControl />-->
+				<TextBlock Panel.ZIndex="1"  Text="{Binding Name}" />
 			</DataTemplate>
-			</ItemsControl.ItemTemplate>
-		</ItemsControl>
+		</ItemsControl.ItemTemplate>
+	</ItemsControl>
 </Window>

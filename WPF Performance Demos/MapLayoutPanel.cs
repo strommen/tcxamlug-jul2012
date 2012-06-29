@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Windows.Controls;
 using System.Windows;
+using System.Windows.Controls.Primitives;
 
 namespace WPF_Performance_Demos
 {
 	public class MapLayoutPanel : Panel
 	{
-
+		#region Attached Properties for Lat/Long
 
 		public static double GetLongitude(DependencyObject obj)
 		{
@@ -23,10 +24,8 @@ namespace WPF_Performance_Demos
 
 		// Using a DependencyProperty as the backing store for X.  This enables animation, styling, binding, etc...
 		public static readonly DependencyProperty LongitudeProperty =
-			DependencyProperty.RegisterAttached("Longitude", typeof(double), typeof(MapLayoutPanel), 
+			DependencyProperty.RegisterAttached("Longitude", typeof(double), typeof(MapLayoutPanel),
 			new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsArrange));
-
-
 
 		public static double GetLatitude(DependencyObject obj)
 		{
@@ -43,68 +42,97 @@ namespace WPF_Performance_Demos
 			DependencyProperty.RegisterAttached("Latitude", typeof(double), typeof(MapLayoutPanel),
 			new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsArrange));
 
-		private Point GetCoordinates(DependencyObject obj)
-		{
-			var lat = GetLatitude(obj);
-			var lon = GetLongitude(obj);
+		#endregion
 
-			var scale = 10;
-			//mercator projection
-			double latRad = lat * Math.PI / 180;
-			double latMerc = Math.Log((1 + Math.Sin(latRad)) / Math.Cos(latRad));
-			return new Point(scale * (180 + lon), -90*scale * latMerc /*2*scale * (180 - lat)*/);
+		#region Dependency Properties for Scale / Center
+
+		public double Scale
+		{
+			get { return (double)GetValue(ScaleProperty); }
+			set { SetValue(ScaleProperty, value); }
 		}
 
-		private double minX, maxX, minY, maxY;
-		private double minXLoc, maxXLoc, minYLoc, maxYLoc;
+		// Using a DependencyProperty as the backing store for Scale.  This enables animation, styling, binding, etc...
+		public static readonly DependencyProperty ScaleProperty =
+			DependencyProperty.Register("Scale", typeof(double), typeof(MapLayoutPanel),
+			new FrameworkPropertyMetadata(10.0, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
+
+
+		#endregion
+
+		public Point Project(double lat, double lon, Point panelCenter, Size panelSize)
+		{
+			//mercator projection
+			double x = 180 + lon;
+			double latRad = lat * Math.PI / 180;
+			double latMerc = Math.Log((1 + Math.Sin(latRad)) / Math.Cos(latRad));
+			double y = -90 * latMerc;
+
+			var scale = this.Scale;
+			double panelX = scale * x + panelSize.Width / 2 - panelCenter.X;
+			double panelY = scale * y + panelSize.Height / 2 - panelCenter.Y;
+
+			return new Point(panelX, panelY);
+		}
+
+		public Point UnProject(double panelX, double panelY)
+		{
+			var scale = this.Scale;
+			double x = (panelX + panelCenter.X - this.ActualWidth / 2) / scale;
+			double y = (panelY + panelCenter.Y - this.ActualHeight / 2) / scale;
+
+			var lon = x - 180;
+			var latRad = -(2 * Math.Atan(Math.Exp(y / 90)) - Math.PI / 2);
+			return new Point(latRad * 180 / Math.PI, lon);
+		}
+
+		public Point panelCenter;
 
 		protected override Size MeasureOverride(Size availableSize)
 		{
 			if (this.InternalChildren.Count == 0) return new Size(0, 0);
 
-			minX = double.MaxValue;
-			maxX = double.MinValue;
-			minY = double.MaxValue;
-			maxY = double.MinValue;
-			minXLoc = double.MaxValue;
-			maxXLoc = double.MinValue;
-			minYLoc = double.MaxValue;
-			maxYLoc = double.MinValue;
+			double minXLoc = double.MaxValue;
+			double maxXLoc = double.MinValue;
+			double minYLoc = double.MaxValue;
+			double maxYLoc = double.MinValue;
 
 			foreach (UIElement child in this.InternalChildren)
 			{
 				child.Measure(availableSize);
 
-				var location = GetCoordinates(child);
+				var lat = GetLatitude(child);
+				var lon = GetLongitude(child);
+
+				var location = Project(lat, lon, new Point(0, 0), new Size(0, 0));
 
 				minXLoc = Math.Min(minXLoc, location.X);
 				maxXLoc = Math.Max(maxXLoc, location.X);
 				minYLoc = Math.Min(minYLoc, location.Y);
 				maxYLoc = Math.Max(maxYLoc, location.Y);
-
-				minX = Math.Min(minX, location.X - child.DesiredSize.Width / 2);
-				maxX = Math.Max(maxX, location.X + child.DesiredSize.Width / 2);
-				minY = Math.Min(minY, location.Y - child.DesiredSize.Height / 2);
-				maxY = Math.Max(maxY, location.Y + child.DesiredSize.Height / 2);
 			}
 
-			return new Size(Math.Min(availableSize.Width, maxX - minX), Math.Min(availableSize.Height, maxY - minY));
+			panelCenter = new Point((minXLoc + maxXLoc) / 2, (minYLoc + maxYLoc) / 2);
+
+			return new Size(Math.Min(availableSize.Width, maxXLoc - minXLoc), Math.Min(availableSize.Height, maxYLoc - minYLoc));
 		}
 
 		protected override Size ArrangeOverride(Size finalSize)
 		{
-			double xInsets = (minXLoc - minX) + (maxX - maxXLoc);
-			double yInsets = (minYLoc - minY) + (maxY - maxYLoc);
-			double scale = Math.Min((finalSize.Width - xInsets) / (maxXLoc - minXLoc), (finalSize.Height - yInsets) / (maxYLoc - minYLoc));
-			double xOffset = minXLoc - minX + (finalSize.Width - scale * (maxX - minX)) / 2;
-			double yOffset = minYLoc - minY + (finalSize.Height - scale * (maxY - minY)) / 2;
 			foreach (UIElement child in this.InternalChildren)
 			{
-				var location = GetCoordinates(child);
+				var lat = GetLatitude(child);
+				var lon = GetLongitude(child);
+
+				var location = Project(lat, lon, panelCenter, finalSize);
 
 				var width = child.DesiredSize.Width;
 				var height = child.DesiredSize.Height;
-				child.Arrange(new Rect(xOffset + scale * (location.X - minXLoc) - width / 2, yOffset + scale * (location.Y - minYLoc) - height / 2, width, height));
+				child.Arrange(new Rect(
+					location.X - width / 2,
+					location.Y - height / 2,
+					width,
+					height));
 			}
 
 			return finalSize;
