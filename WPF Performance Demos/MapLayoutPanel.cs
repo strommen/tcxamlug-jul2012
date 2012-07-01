@@ -11,9 +11,6 @@ namespace WPF_Performance_Demos
 {
 	public class MapLayoutPanel : Panel, IScrollInfo
 	{
-
-
-
 		public static double GetX(DependencyObject obj)
 		{
 			return (double)obj.GetValue(XProperty);
@@ -28,8 +25,6 @@ namespace WPF_Performance_Demos
 		public static readonly DependencyProperty XProperty =
 			DependencyProperty.RegisterAttached("X", typeof(double), typeof(MapLayoutPanel), 
 			new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
-
-
 
 
 		public static double GetY(DependencyObject obj)
@@ -47,8 +42,6 @@ namespace WPF_Performance_Demos
 			DependencyProperty.RegisterAttached("Y", typeof(double), typeof(MapLayoutPanel),
 			new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
 
-		
-		
 
 		#region Dependency Properties for Scale / Center
 

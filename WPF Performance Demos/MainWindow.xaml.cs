@@ -66,8 +66,11 @@ namespace WPF_Performance_Demos
 				MapLayoutPanel map = (MapLayoutPanel)sender;
 				var scrollViewer = FindAncestor<ScrollViewer>(map);
 				var mousePos = e.GetPosition(map);
-				mousePos.X += scrollViewer.HorizontalOffset;
-				mousePos.Y += scrollViewer.VerticalOffset;
+				if (map is System.Windows.Controls.Primitives.IScrollInfo)
+				{
+					mousePos.X += scrollViewer.HorizontalOffset;
+					mousePos.Y += scrollViewer.VerticalOffset;
+				}
 				var logicalPos = map.PixelsToLogical(mousePos, map.displayOffset);
 				double lat, lon;
 				EarthLocation.MercatorUnProject(logicalPos.X, logicalPos.Y, out lat, out lon);
