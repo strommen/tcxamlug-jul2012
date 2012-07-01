@@ -66,8 +66,7 @@ namespace WPF_Performance_Demos
 				Country = parts[0],
 				Name = parts[2].Replace("Saint", "St."),
 				State = StateAbbrevs[parts[3]],
-				Latitude = double.Parse(parts[5]),
-				Longitude = double.Parse(parts[6]),
+				Location = EarthLocation.FromLatLong(double.Parse(parts[5]), double.Parse(parts[6])),
 			};
 		}
 

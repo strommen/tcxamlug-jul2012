@@ -9,41 +9,46 @@ using System.Windows.Media;
 
 namespace WPF_Performance_Demos
 {
-	public class MapLayoutPanel : Panel//, IScrollInfo
+	public class MapLayoutPanel : Panel, IScrollInfo
 	{
-		#region Attached Properties for Lat/Long
 
-		public static double GetLongitude(DependencyObject obj)
+
+
+		public static double GetX(DependencyObject obj)
 		{
-			return (double)obj.GetValue(LongitudeProperty);
+			return (double)obj.GetValue(XProperty);
 		}
 
-		public static void SetLongitude(DependencyObject obj, double value)
+		public static void SetX(DependencyObject obj, double value)
 		{
-			obj.SetValue(LongitudeProperty, value);
+			obj.SetValue(XProperty, value);
 		}
 
 		// Using a DependencyProperty as the backing store for X.  This enables animation, styling, binding, etc...
-		public static readonly DependencyProperty LongitudeProperty =
-			DependencyProperty.RegisterAttached("Longitude", typeof(double), typeof(MapLayoutPanel),
-			new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsArrange));
+		public static readonly DependencyProperty XProperty =
+			DependencyProperty.RegisterAttached("X", typeof(double), typeof(MapLayoutPanel), 
+			new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
 
-		public static double GetLatitude(DependencyObject obj)
+
+
+
+		public static double GetY(DependencyObject obj)
 		{
-			return (double)obj.GetValue(LatitudeProperty);
+			return (double)obj.GetValue(YProperty);
 		}
 
-		public static void SetLatitude(DependencyObject obj, double value)
+		public static void SetY(DependencyObject obj, double value)
 		{
-			obj.SetValue(LatitudeProperty, value);
+			obj.SetValue(YProperty, value);
 		}
 
 		// Using a DependencyProperty as the backing store for Y.  This enables animation, styling, binding, etc...
-		public static readonly DependencyProperty LatitudeProperty =
-			DependencyProperty.RegisterAttached("Latitude", typeof(double), typeof(MapLayoutPanel),
-			new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsArrange));
+		public static readonly DependencyProperty YProperty =
+			DependencyProperty.RegisterAttached("Y", typeof(double), typeof(MapLayoutPanel),
+			new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
 
-		#endregion
+		
+		
 
 		#region Dependency Properties for Scale / Center
 
@@ -63,33 +68,25 @@ namespace WPF_Performance_Demos
 
 		#region Projection
 
-		public Point Project(double lat, double lon, Point panelCenter, Size panelSize)
-		{
-			//mercator projection
-			double x = 180 + lon;
-			double latRad = lat * Math.PI / 180;
-			double latMerc = Math.Log((1 + Math.Sin(latRad)) / Math.Cos(latRad));
-			double y = -90 * latMerc;
-
-			var scale = this.Scale;
-			double panelX = scale * x + panelSize.Width / 2 - panelCenter.X;
-			double panelY = scale * y + panelSize.Height / 2 - panelCenter.Y;
-
-			return new Point(panelX, panelY);
-		}
-
-		public Point UnProject(double panelX, double panelY)
+		public Point LogicalToPixels(Point logicalLocation, Vector displayOffset)
 		{
 			var scale = this.Scale;
-			double x = (panelX + panelCenter.X - this.ActualWidth / 2) / scale;
-			double y = (panelY + panelCenter.Y - this.ActualHeight / 2) / scale;
+			double displayX = scale * logicalLocation.X - displayOffset.X;
+			double displayY = scale * logicalLocation.Y - displayOffset.Y;
 
-			var lon = x - 180;
-			var latRad = -(2 * Math.Atan(Math.Exp(y / 90)) - Math.PI / 2);
-			return new Point(latRad * 180 / Math.PI, lon);
+			return new Point(displayX, displayY);
 		}
 
-		public Point panelCenter;
+		public Point PixelsToLogical(Point displayLocation, Vector displayOffset)
+		{
+			var scale = this.Scale;
+			double x = (displayLocation.X + displayOffset.X) / scale;
+			double y = (displayLocation.Y + displayOffset.Y) / scale;
+
+			return new Point(x, y);
+		}
+
+		public Vector displayOffset;
 
 		#endregion
 
@@ -99,50 +96,62 @@ namespace WPF_Performance_Demos
 		{
 			if (this.InternalChildren.Count == 0) return new Size(0, 0);
 
-			double minX = double.MaxValue;
-			double maxX = double.MinValue;
-			double minY = double.MaxValue;
-			double maxY = double.MinValue;
+			double minDisplayX = double.MaxValue;
+			double maxDisplayX = double.MinValue;
+			double minDisplayY = double.MaxValue;
+			double maxDisplayY = double.MinValue;
 
 			foreach (UIElement child in this.InternalChildren)
 			{
 				child.Measure(availableSize);
 
-				var lat = GetLatitude(child);
-				var lon = GetLongitude(child);
+				var logicalX = GetX(child);
+				var logicalY = GetY(child);
 
-				var location = Project(lat, lon, new Point(0, 0), new Size(0, 0));
+				var displayLocation = LogicalToPixels(new Point(logicalX, logicalY), new Vector(0,0));
 
-				minX = Math.Min(minX, location.X);
-				maxX = Math.Max(maxX, location.X);
-				minY = Math.Min(minY, location.Y);
-				maxY = Math.Max(maxY, location.Y);
+				minDisplayX = Math.Min(minDisplayX, displayLocation.X);
+				maxDisplayX = Math.Max(maxDisplayX, displayLocation.X);
+				minDisplayY = Math.Min(minDisplayY, displayLocation.Y);
+				maxDisplayY = Math.Max(maxDisplayY, displayLocation.Y);
 			}
 
-			_Extent.Width = maxX - minX;
-			_Extent.Height = maxY - minY;
+			_ScrollExtent.Width = maxDisplayX - minDisplayX;
+			_ScrollExtent.Height = maxDisplayY - minDisplayY;
 
-			panelCenter = new Point((minX + maxX) / 2, (minY + maxY) / 2);
+			displayOffset = new Vector(minDisplayX, minDisplayY);
 
-			return new Size(Math.Min(availableSize.Width, _Extent.Width), Math.Min(availableSize.Height, _Extent.Height));
+			return new Size(Math.Min(availableSize.Width, _ScrollExtent.Width), Math.Min(availableSize.Height, _ScrollExtent.Height));
 		}
 
 		protected override Size ArrangeOverride(Size finalSize)
 		{
-			_Viewport = finalSize;
+			_ScrollViewport = finalSize;
+
+			Vector centerWithinViewport = new Vector(0, 0);
+			if (_ScrollExtent.Width < finalSize.Width)
+			{
+				centerWithinViewport.X = (finalSize.Width - _ScrollExtent.Width) / 2;
+				_ScrollExtent.Width = finalSize.Width;
+			}
+			if (_ScrollExtent.Height < finalSize.Height)
+			{
+				centerWithinViewport.Y = (finalSize.Height - _ScrollExtent.Height) / 2;
+				_ScrollExtent.Height = finalSize.Height;
+			}
 
 			foreach (UIElement child in this.InternalChildren)
 			{
-				var lat = GetLatitude(child);
-				var lon = GetLongitude(child);
+				var logicalX = GetX(child);
+				var logicalY = GetY(child);
 
-				var location = Project(lat, lon, panelCenter, finalSize);
+				var displayLocation = LogicalToPixels(new Point(logicalX, logicalY), displayOffset);
 
 				var width = child.DesiredSize.Width;
 				var height = child.DesiredSize.Height;
 				child.Arrange(new Rect(
-					_Offset.X + location.X - width / 2,
-					_Offset.Y + location.Y - height / 2,
+					centerWithinViewport.X - _ScrollOffset.X + displayLocation.X - width / 2,
+					centerWithinViewport.Y - _ScrollOffset.Y + displayLocation.Y - height / 2,
 					width,
 					height));
 			}
@@ -193,38 +202,38 @@ namespace WPF_Performance_Demos
 
 		#region Display Properties
 
-		private Vector _Offset;
-		private Size _Extent;
-		private Size _Viewport;
+		private Vector _ScrollOffset;
+		private Size _ScrollExtent;
+		private Size _ScrollViewport;
 
 		public double ExtentHeight
 		{
-			get { return _Extent.Height; }
+			get { return _ScrollExtent.Height; }
 		}
 
 		public double ExtentWidth
 		{
-			get { return _Extent.Width; }
+			get { return _ScrollExtent.Width; }
 		}
 
 		public double HorizontalOffset
 		{
-			get { return _Offset.X; }
+			get { return _ScrollOffset.X; }
 		}
 
 		public double VerticalOffset
 		{
-			get { return _Offset.Y; }
+			get { return _ScrollOffset.Y; }
 		}
 
 		public double ViewportHeight
 		{
-			get { return _Viewport.Height; }
+			get { return _ScrollViewport.Height; }
 		}
 
 		public double ViewportWidth
 		{
-			get { return _Viewport.Width; }
+			get { return _ScrollViewport.Width; }
 		}
 
 		#endregion
@@ -237,11 +246,11 @@ namespace WPF_Performance_Demos
 				offset = 0;
 
 			if (offset + ViewportWidth > ExtentWidth)
-				offset = ViewportWidth - ExtentWidth;
+				offset = ExtentWidth - ViewportWidth;
 
-			if (offset != _Offset.X)
+			if (offset != _ScrollOffset.X)
 			{
-				_Offset.X = offset;
+				_ScrollOffset.X = offset;
 				InvalidateArrange();
 			}
 		}
@@ -254,9 +263,9 @@ namespace WPF_Performance_Demos
 			if (offset + ViewportHeight > ExtentHeight)
 				offset = ExtentHeight - ViewportHeight;
 
-			if (offset != _Offset.Y)
+			if (offset != _ScrollOffset.Y)
 			{
-				_Offset.Y = offset;
+				_ScrollOffset.Y = offset;
 				InvalidateArrange();
 			}
 		}

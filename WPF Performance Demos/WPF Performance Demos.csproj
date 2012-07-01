@@ -68,6 +68,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="CityViewModel.cs" />
+    <Compile Include="EarthLocation.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FileControl.xaml.cs">
       <DependentUpon>FileControl.xaml</DependentUpon>

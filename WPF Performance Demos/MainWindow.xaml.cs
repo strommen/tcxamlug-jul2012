@@ -64,8 +64,13 @@ namespace WPF_Performance_Demos
 			if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
 			{
 				MapLayoutPanel map = (MapLayoutPanel)sender;
+				var scrollViewer = FindAncestor<ScrollViewer>(map);
 				var mousePos = e.GetPosition(map);
-				var latLong = map.UnProject(mousePos.X, mousePos.Y);
+				mousePos.X += scrollViewer.HorizontalOffset;
+				mousePos.Y += scrollViewer.VerticalOffset;
+				var logicalPos = map.PixelsToLogical(mousePos, map.displayOffset);
+				double lat, lon;
+				EarthLocation.MercatorUnProject(logicalPos.X, logicalPos.Y, out lat, out lon);
 				if (e.Delta > 0)
 				{
 					map.Scale *= 1.1;
@@ -75,11 +80,10 @@ namespace WPF_Performance_Demos
 					map.Scale /= 1.1;
 				}
 				map.UpdateLayout();
-				var newXY = map.Project(latLong.X, latLong.Y, map.panelCenter, new Size(map.ActualWidth, map.ActualHeight));
+				var newDisplayPos = map.LogicalToPixels(logicalPos, map.displayOffset);
 
-				var scrollViewer = FindAncestor<ScrollViewer>(map);
-				scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset + newXY.X - mousePos.X);
-				scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + newXY.Y - mousePos.Y);
+				scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset + (newDisplayPos.X - mousePos.X));
+				scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + (newDisplayPos.Y - mousePos.Y));
 
 				e.Handled = true;
 			}

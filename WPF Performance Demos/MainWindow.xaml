@@ -32,8 +32,8 @@
 
 		<ItemsControl.ItemContainerStyle>
 			<Style>
-				<Setter Property="local:MapLayoutPanel.Latitude" Value="{Binding Latitude}" />
-				<Setter Property="local:MapLayoutPanel.Longitude" Value="{Binding Longitude}" />
+				<Setter Property="local:MapLayoutPanel.X" Value="{Binding Location.MercatorX}" />
+				<Setter Property="local:MapLayoutPanel.Y" Value="{Binding Location.MercatorY}" />
 			</Style>
 		</ItemsControl.ItemContainerStyle>
 

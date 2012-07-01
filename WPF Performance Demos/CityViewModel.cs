@@ -11,8 +11,7 @@ namespace WPF_Performance_Demos
 		public string Name { get; set; }
 		public string State { get; set; }
 		public int Population { get; set; }
-		public double Latitude { get; set; }
-		public double Longitude { get; set; }
+		public EarthLocation Location { get; set; }
 
 		public override string ToString()
 		{
