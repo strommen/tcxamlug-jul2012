@@ -31,7 +31,7 @@ namespace WPF_Performance_Demos
 
 		private void MapLayoutPanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
-			var map = (MapLayoutPanel)sender;
+			var map = (ZoomablePanel)sender;
 			if (map.CaptureMouse())
 			{
 				var scrollViewer = FindAncestor<ScrollViewer>(map);
@@ -44,7 +44,7 @@ namespace WPF_Performance_Demos
 
 		void map_MouseMove(object sender, MouseEventArgs e)
 		{
-			var map = (MapLayoutPanel)sender;
+			var map = (ZoomablePanel)sender;
 			var scrollViewer = FindAncestor<ScrollViewer>(map);
 			var loc = e.GetPosition(scrollViewer);
 			scrollViewer.ScrollToVerticalOffset(mouseCaptureScrollOffset.Y - loc.Y + mouseCaptureLocation.Y);
@@ -53,7 +53,7 @@ namespace WPF_Performance_Demos
 
 		void map_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
 		{
-			var map = (MapLayoutPanel)sender;
+			var map = (ZoomablePanel)sender;
 			map.MouseLeftButtonUp -= map_MouseLeftButtonUp;
 			map.MouseMove -= map_MouseMove;
 			map.ReleaseMouseCapture();			
@@ -63,7 +63,7 @@ namespace WPF_Performance_Demos
 		{
 			if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
 			{
-				MapLayoutPanel map = (MapLayoutPanel)sender;
+				ZoomablePanel map = (ZoomablePanel)sender;
 				var scrollViewer = FindAncestor<ScrollViewer>(map);
 				var mousePos = e.GetPosition(map);
 				if (map is System.Windows.Controls.Primitives.IScrollInfo)

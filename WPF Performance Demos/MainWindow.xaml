@@ -24,7 +24,7 @@
 		</ItemsControl.Template>
 		<ItemsControl.ItemsPanel>
 			<ItemsPanelTemplate>
-				<local:MapLayoutPanel Background="Transparent" 
+				<local:ZoomablePanel Background="Transparent" 
 									  MouseLeftButtonDown="MapLayoutPanel_MouseLeftButtonDown" 
 									  MouseWheel="MapLayoutPanel_MouseWheel" />
 			</ItemsPanelTemplate>
@@ -32,8 +32,8 @@
 
 		<ItemsControl.ItemContainerStyle>
 			<Style>
-				<Setter Property="local:MapLayoutPanel.X" Value="{Binding Location.MercatorX}" />
-				<Setter Property="local:MapLayoutPanel.Y" Value="{Binding Location.MercatorY}" />
+				<Setter Property="local:ZoomablePanel.X" Value="{Binding Location.MercatorX}" />
+				<Setter Property="local:ZoomablePanel.Y" Value="{Binding Location.MercatorY}" />
 			</Style>
 		</ItemsControl.ItemContainerStyle>
 

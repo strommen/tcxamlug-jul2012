@@ -9,7 +9,7 @@ using System.Windows.Media;
 
 namespace WPF_Performance_Demos
 {
-	public class MapLayoutPanel : Panel, IScrollInfo
+	public class ZoomablePanel : Panel, IScrollInfo
 	{
 		public static double GetX(DependencyObject obj)
 		{
@@ -23,7 +23,7 @@ namespace WPF_Performance_Demos
 
 		// Using a DependencyProperty as the backing store for X.  This enables animation, styling, binding, etc...
 		public static readonly DependencyProperty XProperty =
-			DependencyProperty.RegisterAttached("X", typeof(double), typeof(MapLayoutPanel), 
+			DependencyProperty.RegisterAttached("X", typeof(double), typeof(ZoomablePanel), 
 			new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
 
 
@@ -39,7 +39,7 @@ namespace WPF_Performance_Demos
 
 		// Using a DependencyProperty as the backing store for Y.  This enables animation, styling, binding, etc...
 		public static readonly DependencyProperty YProperty =
-			DependencyProperty.RegisterAttached("Y", typeof(double), typeof(MapLayoutPanel),
+			DependencyProperty.RegisterAttached("Y", typeof(double), typeof(ZoomablePanel),
 			new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
 
 
@@ -53,7 +53,7 @@ namespace WPF_Performance_Demos
 
 		// Using a DependencyProperty as the backing store for Scale.  This enables animation, styling, binding, etc...
 		public static readonly DependencyProperty ScaleProperty =
-			DependencyProperty.Register("Scale", typeof(double), typeof(MapLayoutPanel),
+			DependencyProperty.Register("Scale", typeof(double), typeof(ZoomablePanel),
 			new FrameworkPropertyMetadata(10.0, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
 
 
