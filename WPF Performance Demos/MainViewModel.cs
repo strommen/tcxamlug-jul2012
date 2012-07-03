@@ -41,7 +41,7 @@ namespace WPF_Performance_Demos
 				}
 			}
 
-			this.Cities = cities.Where(c => c.Population > 0).OrderByDescending(c => c.Population).Take(200).ToList();
+			this.Cities = cities.Where(c => c.Population > 0).OrderByDescending(c => c.Population).ToList();
 			//			this.Files = System.IO.Directory.EnumerateFiles(@"c:\windows\winsxs\", "*.*", System.IO.SearchOption.AllDirectories).ToList();
 		}
 

@@ -31,10 +31,10 @@ namespace WPF_Performance_Demos
 
 		private void MapLayoutPanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
-			var map = (ZoomablePanel)sender;
+			var map = (VirtualizingZoomablePanel)sender;
 			if (map.CaptureMouse())
 			{
-				var scrollViewer = FindAncestor<ScrollViewer>(map);
+				var scrollViewer = Utils.FindAncestor<ScrollViewer>(map);
 				mouseCaptureLocation = e.GetPosition(scrollViewer);
 				mouseCaptureScrollOffset = new Vector(scrollViewer.HorizontalOffset, scrollViewer.VerticalOffset);
 				map.MouseLeftButtonUp += map_MouseLeftButtonUp;
@@ -44,8 +44,8 @@ namespace WPF_Performance_Demos
 
 		void map_MouseMove(object sender, MouseEventArgs e)
 		{
-			var map = (ZoomablePanel)sender;
-			var scrollViewer = FindAncestor<ScrollViewer>(map);
+			var map = (VirtualizingZoomablePanel)sender;
+			var scrollViewer = Utils.FindAncestor<ScrollViewer>(map);
 			var loc = e.GetPosition(scrollViewer);
 			scrollViewer.ScrollToVerticalOffset(mouseCaptureScrollOffset.Y - loc.Y + mouseCaptureLocation.Y);
 			scrollViewer.ScrollToHorizontalOffset(mouseCaptureScrollOffset.X - loc.X + mouseCaptureLocation.X);
@@ -53,7 +53,7 @@ namespace WPF_Performance_Demos
 
 		void map_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
 		{
-			var map = (ZoomablePanel)sender;
+			var map = (VirtualizingZoomablePanel)sender;
 			map.MouseLeftButtonUp -= map_MouseLeftButtonUp;
 			map.MouseMove -= map_MouseMove;
 			map.ReleaseMouseCapture();			
@@ -63,15 +63,15 @@ namespace WPF_Performance_Demos
 		{
 			if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
 			{
-				ZoomablePanel map = (ZoomablePanel)sender;
-				var scrollViewer = FindAncestor<ScrollViewer>(map);
+				var map = (VirtualizingZoomablePanel)sender;
+				var scrollViewer = Utils.FindAncestor<ScrollViewer>(map);
 				var mousePos = e.GetPosition(map);
 				if (map is System.Windows.Controls.Primitives.IScrollInfo)
 				{
 					mousePos.X += scrollViewer.HorizontalOffset;
 					mousePos.Y += scrollViewer.VerticalOffset;
 				}
-				var logicalPos = map.PixelsToLogical(mousePos, map.displayOffset);
+				var logicalPos = map.PixelsToLogical(mousePos, map.Scale, map.displayOffset);
 				double lat, lon;
 				EarthLocation.MercatorUnProject(logicalPos.X, logicalPos.Y, out lat, out lon);
 				if (e.Delta > 0)
@@ -83,21 +83,13 @@ namespace WPF_Performance_Demos
 					map.Scale /= 1.1;
 				}
 				map.UpdateLayout();
-				var newDisplayPos = map.LogicalToPixels(logicalPos, map.displayOffset);
+				var newDisplayPos = map.LogicalToPixels(logicalPos, map.Scale, map.displayOffset);
 
 				scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset + (newDisplayPos.X - mousePos.X));
 				scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + (newDisplayPos.Y - mousePos.Y));
 
 				e.Handled = true;
 			}
-		}
-
-		private T FindAncestor<T>(DependencyObject obj) where T : DependencyObject
-		{
-			if (obj == null) return null;
-			if (obj is T) return (T)obj;
-
-			return FindAncestor<T>(VisualTreeHelper.GetParent(obj));
 		}
 	}
 }

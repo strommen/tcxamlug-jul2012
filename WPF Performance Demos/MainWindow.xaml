@@ -24,18 +24,18 @@
 		</ItemsControl.Template>
 		<ItemsControl.ItemsPanel>
 			<ItemsPanelTemplate>
-				<local:ZoomablePanel Background="Transparent" 
+				<local:VirtualizingZoomablePanel Background="Transparent" 
 									  MouseLeftButtonDown="MapLayoutPanel_MouseLeftButtonDown" 
 									  MouseWheel="MapLayoutPanel_MouseWheel" />
 			</ItemsPanelTemplate>
 		</ItemsControl.ItemsPanel>
 
-		<ItemsControl.ItemContainerStyle>
+		<!--<ItemsControl.ItemContainerStyle>
 			<Style>
 				<Setter Property="local:ZoomablePanel.X" Value="{Binding Location.MercatorX}" />
 				<Setter Property="local:ZoomablePanel.Y" Value="{Binding Location.MercatorY}" />
 			</Style>
-		</ItemsControl.ItemContainerStyle>
+		</ItemsControl.ItemContainerStyle>-->
 
 		<ItemsControl.ItemTemplate>
 			<DataTemplate>
