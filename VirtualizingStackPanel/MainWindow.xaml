@@ -1,0 +1,69 @@
+﻿<Window x:Class="VirtualizingStackPanel.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*" />
+			<ColumnDefinition Width="Auto" />
+		</Grid.ColumnDefinitions>
+
+		<!--DisplayMemberPath="DisplayText"-->
+		<Button Command="{Binding UpdateCommand}" Margin="5" VerticalAlignment="Top" Grid.Column="1" >Don't Click Me!</Button>
+		
+		<!-- Doesn't virtualize -->
+		<!--<ScrollViewer>
+			<ItemsControl ItemsSource="{Binding Cities}" />
+		</ScrollViewer>-->
+		
+		<!-- Virtualizes: ListBox -->
+		<ListBox ItemsSource="{Binding Cities}" />
+
+		<!-- Doesn't Virtualize: ListBox in a StackPanel -->
+		<!--<StackPanel >
+			<ListBox ItemsSource="{Binding Cities}" />
+		</StackPanel>-->
+
+		<!-- Virtualizes: ComboBox with ItemsPanelTemplate -->
+		<!--<ComboBox ItemsSource="{Binding Cities}" 
+				  HorizontalAlignment="Center" VerticalAlignment="Center" Width="500">
+			<ComboBox.ItemsPanel>
+				<ItemsPanelTemplate>
+					<VirtualizingStackPanel />
+				</ItemsPanelTemplate>
+			</ComboBox.ItemsPanel>
+		</ComboBox>-->
+
+
+		<!-- Doesn't virtualize -->
+		<!--<ScrollViewer>
+			<ItemsControl ItemsSource="{Binding Cities}">
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<VirtualizingStackPanel />
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+			</ItemsControl>
+		</ScrollViewer>-->
+
+		<!-- Virtualizes: ControlTemplate with ScrollViewer, and CanContentScroll = true-->
+		<!--<ItemsControl ItemsSource="{Binding Cities}" 
+					  VirtualizingStackPanel.VirtualizationMode="Recycling" 
+					  ScrollViewer.CanContentScroll="True" >
+			<ItemsControl.ItemsPanel>
+				<ItemsPanelTemplate>
+					<VirtualizingStackPanel />
+				</ItemsPanelTemplate>
+			</ItemsControl.ItemsPanel>
+			
+			<ItemsControl.Template>
+				<ControlTemplate>
+					<ScrollViewer>
+						<ItemsPresenter />
+					</ScrollViewer>
+				</ControlTemplate>
+			</ItemsControl.Template>
+		</ItemsControl>-->
+
+	</Grid>
+</Window>

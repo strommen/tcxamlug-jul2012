@@ -73,7 +73,7 @@ namespace WPF_Performance_Demos
 				}
 				var logicalPos = map.PixelsToLogical(mousePos, map.Scale, map.displayOffset);
 				double lat, lon;
-				EarthLocation.MercatorUnProject(logicalPos.X, logicalPos.Y, out lat, out lon);
+				UsaCities.EarthLocation.MercatorUnProject(logicalPos.X, logicalPos.Y, out lat, out lon);
 				if (e.Delta > 0)
 				{
 					map.Scale *= 1.1;

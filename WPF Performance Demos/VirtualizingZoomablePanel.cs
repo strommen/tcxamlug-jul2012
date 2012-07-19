@@ -11,11 +11,19 @@ namespace WPF_Performance_Demos
 {
 	public class VirtualizingZoomablePanel : VirtualizingPanel, IScrollInfo
 	{
+		/// <summary>
+		/// The ILocation interface is implemented by items in the ItemsSource collection to tell the panel its location.
+		/// </summary>
+		/// <remarks>
+		/// Note that we can't use attached properties for this because virtualization state depends on this info.
+		/// </remarks>
 		public interface ILocation
 		{
 			double X { get; }
 			double Y { get; }
 		}
+
+		#region Logical/Pixel Conversion
 
 		#region Dependency Property for Scale
 
@@ -33,7 +41,7 @@ namespace WPF_Performance_Demos
 
 		#endregion
 
-		#region Logical/Pixel Conversion
+		public Vector displayOffset;
 
 		public Point LogicalToPixels(Point logicalLocation, double displayScale, Vector displayOffset)
 		{
@@ -51,8 +59,6 @@ namespace WPF_Performance_Demos
 			return new Point(x, y);
 		}
 
-		public Vector displayOffset;
-
 		#endregion
 
 		#region Layout Methods
@@ -63,39 +69,25 @@ namespace WPF_Performance_Demos
 
 			if (items.Count == 0) return new Size(0, 0);
 
+			// Extent is calculated by finding the min/max X/Y among all items.
 			CalculateExtent(items);
 
+			// Choose the first 30 items within the viewport.  The view-model is responsible for sorting
+			// them in priority order (i.e. by population).
 			var dataIndexesToRealize = GetItemsWithinViewport(items).Take(30).ToList();
 
+			// Update our controls based on the data items we selected.
 			var generator = this.ItemContainerGenerator;
 			RealizeElements(dataIndexesToRealize, generator);
 			ReVirtualizeElements(dataIndexesToRealize, generator);
 
+			// Standard MeasureOverride stuff...
 			foreach (UIElement child in this.InternalChildren)
 			{
 				child.Measure(availableSize);
 			}
 
 			return new Size(Math.Min(availableSize.Width, _ScrollExtent.Width), Math.Min(availableSize.Height, _ScrollExtent.Height));
-		}
-
-		private void ReVirtualizeElements(List<int> dataIndexesToRealize, IItemContainerGenerator generator)
-		{
-			var controlIndexes = this.InternalChildren.Cast<UIElement>().Select(
-				(element, i) => new
-				{
-					ControlIndex = i,
-					DataIndex = generator.IndexFromGeneratorPosition(new GeneratorPosition(i, 0)),
-				})
-				.ToList();
-
-			foreach (var itemToRemove in controlIndexes
-				.Where(idx => !dataIndexesToRealize.Contains(idx.DataIndex))
-				.OrderByDescending(idx => idx.ControlIndex))
-			{
-				generator.Remove(new GeneratorPosition(itemToRemove.ControlIndex, 0), 1);
-				base.RemoveInternalChildRange(itemToRemove.ControlIndex, 1);
-			}
 		}
 
 		private void RealizeElements(List<int> dataIndexesToKeep, IItemContainerGenerator generator)
@@ -129,6 +121,25 @@ namespace WPF_Performance_Demos
 						generator.PrepareItemContainer(control);
 					}
 				}
+			}
+		}
+
+		private void ReVirtualizeElements(List<int> dataIndexesToRealize, IItemContainerGenerator generator)
+		{
+			var controlIndexes = this.InternalChildren.Cast<UIElement>().Select(
+				(element, i) => new
+				{
+					ControlIndex = i,
+					DataIndex = generator.IndexFromGeneratorPosition(new GeneratorPosition(i, 0)),
+				})
+				.ToList();
+
+			foreach (var itemToRemove in controlIndexes
+				.Where(idx => !dataIndexesToRealize.Contains(idx.DataIndex))
+				.OrderByDescending(idx => idx.ControlIndex))
+			{
+				generator.Remove(position: new GeneratorPosition(itemToRemove.ControlIndex, 0), count: 1);
+				base.RemoveInternalChildRange(itemToRemove.ControlIndex, 1);
 			}
 		}
 
